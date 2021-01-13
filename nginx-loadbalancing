@@ -15,7 +15,7 @@ least_conn;
 
 server {
     listen 3000;
-    server_name lindungiapi.kpu.go.id;
+    server_name lindungiapi.id;
 
     location / {
         proxy_redirect      off;
