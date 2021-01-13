@@ -1,0 +1,12 @@
+https://www.monitis.com/blog/6-best-practices-for-optimizing-your-nginx-performance/
+https://medium.com/@muhammadtriwibowo/set-permanently-ulimit-n-open-files-in-ubuntu-4d61064429a
+
+https://qastack.id/dba/27328/how-large-should-be-mysql-innodb-buffer-pool-size
+https://haydenjames.io/mysql-query-cache-size-performance/#:~:text=Set%20MySQL%20Query%20Cache%20Size,query%20cache%20low%20memory%20prunes
+
+# https://harry.sufehmi.com/archives/category/teknoblogia/open-source/
+# https://serverfault.com/questions/408845/what-value-of-thread-cache-size-should-i-use
+# https://sugengsuprayogi.wordpress.com/2011/04/05/tuning-perfoma-mysql/
+# https://gist.github.com/fevangelou/fb72f36bbe333e059b66
+# https://www.percona.com/blog/2013/09/20/innodb-performance-optimization-basics-updated/
+# https://www.percona.com/blog/2016/10/12/mysql-5-7-performance-tuning-immediately-after-installation/
