@@ -1,0 +1,177 @@
++--------------------------
+|   PERINTAH DASAR DOCKER
++--------------------------
+
+INSTALL Docker
+    sudo apt install docker.io
+    service docker start
+    docker run hello-world
+
+REMOVE AND REBUILD 
+    docker-compose rm -f
+    docker-compose pull
+    docker-compose up --build -d
+
+ENTER CONTAINER 
+    docker exec -it <nama_container> /bin/sh
+
+MENJALANKAN CONTAINER 
+    docker-compose up
+
+LIST ACTIVE CONTAINER 
+    docker ps
+
+LIST ACTIVE ALL CONTAINER 
+    docker ps --all
+
+MEMBERSIHKAN SEMUA CONTAINER 
+    docker system prune  #dangling images
+    docker system prune -a  #semua images
+
+MEMBERSIHKAN SEMUA VOLUME 
+    docker system prune -a --volumes
+
+PULL IMAGES {ambil image dari docker-hub, misal : alphine, ubuntu, mongodb}
+    docker pull <image_name>
+
+MATIKAN DOCKER
+    docker stop nama_app
+
+HAPUS CONTAINERS
+    docker stop $(docker ps -a -q)
+    docker rm -v $(docker ps -a -q)
+
+HAPUS VOLUMES
+    docker volume rm $(docker volume ls -qf dangling=true)
+
+UBUNTU IN DOCKER
+    docker pull ubuntu
+    docker run -dit ubuntu:latest
+
+CREATE/UPDATE OWN IMAGE
+    jalankan container ubuntu dan modifikasi sesuai selera, lalu exit
+    docker commit -m "Pesan commit" -a "Golang" container_id Golang/starter_kit
+    docker akan buat image baru sesuai isi container terakhir
+
+UPLOAD ke DOCKER - HUB
+    docker login
+    docker images
+    docker push mahmudinashar/<image>
+
+MOUNT DOCKER VOLUME
+    docker volume create --name mydata
+    docker run -d -v mydata:/mydata ubuntu
+    docker attach container_id
+    ls /mydata
+
+INSTALL DOCKER COMPOSE
+    sudo curl -o /usr/local/bin/docker-compose -L "https://github.com/docker/compose/releases/download/1.8.1/docker-compose-$(uname -s)-$(uname -m)"
+    sudo chmod +x /usr/local/bin/docker-compose
+    docker-compose -v
+
+BACKUP DOCKER IMAGES
+    docker save -o ./nama_image.tar nama_image
+    BACKUP DOCKER CONTAINER
+    docker export -o ./nama_cont.tar nama_cont
+
+RESTORE DOCKER IMAGES
+    docker import ./nama_cont.tar nama_cont
+    RESTORE DOCKER CONTAINER
+    docker load -i ./nama_image.tar
+
+RESOURCE LIMIT
+    docker run -dit --c 1024 ubuntu:latest
+    docker run -dit 300M ubuntu:latest
+
+PANTAU PROSES CONT BERJALAN
+    docker top <nama_container>
+
+CEK CONTAINER DISK USAGE
+    docker ps -s
+
+
++--------------------------------
+| CONTOH DOCKERFILE - MULTISTAGE
++--------------------------------
+# Start from golang base image
+FROM golang:alpine as builder
+
+# ENV GO111MODULE=on
+
+# Add Maintainer info
+LABEL maintainer="mahmudinashar@yahoo.co.id"
+
+# Install git.
+# Git is required for fetching the dependencies.
+RUN apk update && apk add --no-cache git
+
+# Set the current working directory inside the container 
+WORKDIR /app
+
+# Copy go mod and sum files 
+COPY go.mod go.sum ./
+
+# RUN go mod tidy
+
+# Download all dependencies. Dependencies will be cached if the go.mod and the go.sum files are not changed 
+RUN go mod download
+
+# Copy the source from the current directory to the working Directory inside the container 
+
+COPY . .
+# Build the Go app
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
+
+# Start a new stage from scratch
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates
+
+WORKDIR /root/
+
+# Copy the Pre-built binary file from the previous stage
+COPY --from=builder /app/main .
+COPY --from=builder /app/.env .
+COPY --from=builder /app/assets ./assets  
+
+# Expose port 8080 to the outside world
+EXPOSE 8080
+
+#Command to run the executable
+CMD ["./main"]
+
++--------------------------------
+|   docker-compose.yml
++--------------------------------
+version: '3'
+services:
+  app:
+    container_name: go_starterkit
+    build: .
+    ports: 
+      - 8080:3001 
+    restart: on-failure
+    volumes:
+      - api:/usr/src/app/
+
+volumes:
+  api:
+
++----------------------------------------------------------------------------------------------
+|                                  DOCKERFILE - SYNTAX
+|   { https://www.linuxid.net/31073/cara-membuat-docker-images-dengan-dockerfile/ }
++----------------------------------------------------------------------------------------------
+
+ARG – Instruksi ini memungkinkan Anda untuk menentukan variabel yang dapat dilewati saat build-time. Anda juga dapat menentukan nilai default.
+FROM – image dasar untuk membangun image baru. Instruksi ini harus menjadi instruksi non-comment pertama di Dockerfile. Satu-satunya pengecualian dari aturan ini adalah ketika Anda ingin menggunakan variabel dalam argumen FROM. Dalam hal ini FROM dapat didahului dengan satu atau lebih instruksi ARG.
+LABEL – Digunakan untuk menambahkan metadata ke image, seperti deskripsi, versi, author dll. Anda dapat menentukan lebih dari satu LABEL dan setiap instruksi LABEL adalah key-value pair.
+RUN – Perintah yang ditentukan dalam instruksi ini akan dieksekusi selama proses build. Setiap instruksi RUN membuat layer baru di atas image saat ini.
+ADD – Digunakan untuk menyalin file dan direktori dari sumber yang ditentukan ke tujuan yang ditentukan pada image docker. Sumbernya dapat berupa file atau direktori lokal atau URL. Jika sumbernya adalah arsiptar lokal , maka secara otomatis dibongkar ke dalam image Docker.
+COPY – Mirip dengan ADD tetapi sumbernya hanya berupa file atau direktori lokal.
+ENV – Instruksi ini memungkinkan Anda untuk mendefinisikan environment variable.
+CMD – Digunakan untuk menentukan perintah yang akan dieksekusi ketika Anda menjalankan sebuah container. Anda hanya dapat menggunakan satu instruksi CMD di Dockerfile Anda.
+ENTRYPOINT – Mirip dengan CMD, instruksi ini mendefinisikan perintah apa yang akan dieksekusi ketika menjalankan sebuah container.
+WORKDIR – Directive ini menetapkan direktori kerja saat ini untuk instruksi RUN, CMD, ENTRYPOINT, COPY, dan ADD berikut.
+USER – Tetapkan nama user atau UID untuk digunakan ketika menjalankan instruksi RUN, CMD, ENTRYPOINT, COPY dan ADD.
+USER – Set the username or UID to use when running any following RUN, CMD, ENTRYPOINT, COPY and ADD instructions.
+VOLUME – Memungkinkan Anda untuk memasang direktori mesin host ke container.
+EXPOSE – Digunakan untuk menentukan port tempat Container mendengarkan saat runtime.
